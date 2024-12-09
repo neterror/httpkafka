@@ -1,0 +1,9 @@
+syntax="proto3";
+
+message PositionReport
+{
+    double lat = 2;
+    double lng = 3;
+    double alt = 4;
+    double speed = 5;
+}
