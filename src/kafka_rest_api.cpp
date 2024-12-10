@@ -36,7 +36,7 @@ void KafkaRestApi::createInstance() {
     QJsonDocument doc(parameters);
     auto jsonPayload = doc.toJson(QJsonDocument::Compact);
     auto reply = mManager.post(request, jsonPayload);
-    auto processResponse = [this, reply]{
+    auto processResponse = [this, reply]()mutable {
         reply->deleteLater();
         QJsonObject obj;
         if (reply->error() != QNetworkReply::NoError) {
