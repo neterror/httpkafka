@@ -144,13 +144,14 @@ void KafkaRestApi::consume() {
 
 void KafkaRestApi::processMessage(const QJsonObject& obj) {
     auto value = obj["value"].toString().toUtf8();
-    auto decoded = QByteArray::fromBase64(value);
     auto topic = obj["topic"].toString();
-    auto key = obj["key"].toString();
+    auto key = obj["key"].toString().toUtf8();
     auto offset = obj["offset"].toInt();
 
-
-    emit message({topic, key, decoded, 0, offset});
+    auto decodedKey = QByteArray::fromBase64(key);
+    auto decodedValue = QByteArray::fromBase64(value);
+    
+    emit message({topic, decodedKey, decodedValue, 0, offset});
 }
 
 
@@ -167,7 +168,7 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
     QJsonArray records;
     for (const auto& message: messages) {
         records.append(QJsonObject{
-                {"key", message.key},
+                {"key", QString{message.key.toUtf8().toBase64()}},
                 {"value", QString{message.data.toBase64()}}
             });
     }

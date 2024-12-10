@@ -36,9 +36,9 @@ void sendMessage() {
 std::unique_ptr<QTimer> startProducer() {
     auto timer = std::make_unique<QTimer>();
     timer->setSingleShot(false);
-    timer->setInterval(100);
+    timer->setInterval(1000);
     QObject::connect(timer.get(), &QTimer::timeout, sendMessage);
-    _producer.reset(new ProxyProducer(5000));
+    _producer.reset(new ProxyProducer(0));
     timer->start();
     return timer;
 }
@@ -49,7 +49,7 @@ void receiveMessage(KafkaMessage message) {
     if (!report.deserialize(&serializer, message.data)) {
         qWarning() << "Failed to deserialize PositionReport message";
     } else {
-        qDebug().noquote() << "lat: " << report.lat() << "lng:" << report.lng();
+        qDebug().noquote() << "lat: " << report.lat() << "lng:" << report.lng() << ", key: " << message.key;
     }
 }
     
