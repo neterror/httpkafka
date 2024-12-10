@@ -110,10 +110,7 @@ void KafkaRestApi::subscribe(const QStringList& topics) {
 
 void KafkaRestApi::consume() {
     auto request = QNetworkRequest(consumersUrl("records"));
-    QHttpHeaders headers;
-    headers.append("Content-Type", "application/vnd.kafka.v2+json");
-    headers.append("Accept", "application/vnd.kafka.binary.v2+json");
-    request.setHeaders(headers);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/vnd.kafka.v2+json");
 
     auto reply = mManager.get(request);
     auto processResponse = [this, reply]{
@@ -153,9 +150,7 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
     }
     
     auto request = QNetworkRequest(producerUrl(messages.first().topic));
-    QHttpHeaders headers;
-    headers.append("Content-Type", "application/vnd.kafka.binary.v2+json");
-    request.setHeaders(headers);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/vnd.kafka.binary.v2+json");
 
     QJsonArray records;
     for (const auto& message: messages) {
