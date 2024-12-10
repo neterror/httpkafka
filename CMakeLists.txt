@@ -20,7 +20,7 @@ add_library(httpkafka
 
 set_target_properties(httpkafka PROPERTIES POSITION_INDEPENDENT_CODE ON)
 target_include_directories(httpkafka PRIVATE inc)
-target_link_libraries(httpkafka PRIVATE protofiles Qt6::Core Qt6::Network Qt6::StateMachine)
+target_link_libraries(httpkafka PRIVATE Qt6::Core Qt6::Network Qt6::StateMachine)
 
 install(TARGETS httpkafka  LIBRARY DESTINATION lib)
 install(DIRECTORY inc/ DESTINATION include/httpkafka)
