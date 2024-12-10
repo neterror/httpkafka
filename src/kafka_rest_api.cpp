@@ -36,7 +36,7 @@ void KafkaRestApi::createInstance() {
     QJsonDocument doc(parameters);
     auto jsonPayload = doc.toJson(QJsonDocument::Compact);
     auto reply = mManager.post(request, jsonPayload);
-    auto processResponse = [this, reply]()mutable {
+    auto processResponse = [this, reply]{
         reply->deleteLater();
         QJsonObject obj;
         if (reply->error() != QNetworkReply::NoError) {
@@ -48,11 +48,12 @@ void KafkaRestApi::createInstance() {
 
         auto doc = QJsonDocument::fromJson(reply->readAll());
         auto root = doc.object();
-        mInstance = root["instance_id"].toString();
-        if (mInstance.isEmpty()) {
+        auto instance = root["instance_id"].toString();
+        if (instance.isEmpty()) {
             mLastError = "failed to read instanceId";
             emit error();
         } else {
+            mInstance = instance;
             emit instanceCreated();
         }
     };
