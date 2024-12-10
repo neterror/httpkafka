@@ -4,7 +4,7 @@
 #include <QJsonObject>
 #include <QNetworkAccessManager>
 #include "kafka_message.h"
-
+#include <QElapsedTimer>
 
 class KafkaRestApi : public QObject {
     Q_OBJECT
@@ -15,6 +15,9 @@ class KafkaRestApi : public QObject {
     QString mGroup;
     qint32 mReadTimeout;
     QString mLastError;
+    QElapsedTimer mElapsed;
+    bool mReplayWithTimeDelay {false};
+    
 
     QUrl consumersUrl() const {
         return QUrl{QString("%1/consumers/%2").arg(mServer).arg(mGroup)};
@@ -32,10 +35,13 @@ class KafkaRestApi : public QObject {
         return QUrl{QString("%1/topics/%2").arg(mServer).arg(topic)};
     }
     
+    void processMessage(const QJsonObject& obj);
 
 public:
     KafkaRestApi(const QString& group);
     QString lastError() const {return mLastError;}
+
+    void replayWithTimeDelays(bool enable) {mReplayWithTimeDelay = enable;}
 
     void createInstance();
     void deleteInstance();

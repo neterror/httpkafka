@@ -126,20 +126,24 @@ void KafkaRestApi::consume() {
 
         auto doc = QJsonDocument::fromJson(reply->readAll());
         for (const auto& item: doc.array()) {
-            auto obj = item.toObject();
-            auto value = obj["value"].toString().toUtf8();
-            auto decoded = QByteArray::fromBase64(value);
-            auto topic = obj["topic"].toString();
-            auto key = obj["key"].toString();
-            auto offset = obj["offset"].toInt();
-
-            emit message({topic, key, decoded, 0, offset});
+            processMessage(item.toObject());
         }
         emit readingComplete();
     };
     connect(reply, &QNetworkReply::finished, processResponse);
 }
 
+
+void KafkaRestApi::processMessage(const QJsonObject& obj) {
+    auto value = obj["value"].toString().toUtf8();
+    auto decoded = QByteArray::fromBase64(value);
+    auto topic = obj["topic"].toString();
+    auto key = obj["key"].toString();
+    auto offset = obj["offset"].toInt();
+
+
+    emit message({topic, key, decoded, 0, offset});
+}
 
 
 void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {

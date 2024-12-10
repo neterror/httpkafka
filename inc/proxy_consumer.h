@@ -14,6 +14,7 @@ public:
     ProxyConsumer(const QString& groupName, const QStringList& topics);
     void start();
     void stop();
+    void replayWithTimeDelays(bool enabled) {mProxy.replayWithTimeDelays(enabled);}
 private slots:
     void onCreateInstance();
     void onDeleteInstance();
