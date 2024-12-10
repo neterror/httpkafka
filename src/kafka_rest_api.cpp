@@ -1,4 +1,5 @@
 #include "kafka_rest_api.h"
+#include <QAuthenticator>
 #include <QNetworkReply>
 #include <QtCore>
 #include <QJsonDocument>
@@ -15,6 +16,15 @@ KafkaRestApi::KafkaRestApi(const QString& group) : mGroup{group} {
     mReadTimeout = settings.value("KafkaRestApi/readTimeout").toInt();
     qDebug() << "mServer = " << mServer << ", readTimeout: " << mReadTimeout;
     mManager.setAutoDeleteReplies(false);
+
+    auto user = settings.value("KafkaRestApi/user").toString();
+    auto pass = settings.value("KafkaRestApi/password").toString();
+    QObject::connect(&mManager, &QNetworkAccessManager::authenticationRequired,
+                     [user, pass](QNetworkReply* reply, QAuthenticator* authenticator) {
+                         qDebug() << "authenticating with " << user << pass;
+                         authenticator->setUser(user);
+                         authenticator->setPassword(pass);
+                     });
 }
 
 
