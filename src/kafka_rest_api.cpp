@@ -162,6 +162,7 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
     
     auto request = QNetworkRequest(producerUrl(messages.first().topic));
     request.setHeader(QNetworkRequest::ContentTypeHeader, "application/vnd.kafka.binary.v2+json");
+    request.hasRawHeader("Accept: application/vnd.kafka.v2+json");
 
     QJsonArray records;
     for (const auto& message: messages) {
@@ -174,7 +175,6 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
         {"records", records},
     };
     QJsonDocument doc(parameters);
-    qDebug() << "publish: " << doc;
     auto reply = mManager.post(request, doc.toJson(QJsonDocument::Compact));
     auto processResponse = [this, reply]{
         if (reply->error() != QNetworkReply::NoError) {
