@@ -14,12 +14,12 @@ ProxyProducer::ProxyProducer(int delay) : mProxy("producer") {
 }
 
 
-void ProxyProducer::send(KafkaMessage message) {
+void ProxyProducer::send(KafkaMessage message, bool delayedSend) {
     auto moved = std::move(message);
     QDateTime UTC(QDateTime::currentDateTimeUtc());
     moved.timestamp = UTC.toMSecsSinceEpoch();
 
-    if (mSendDelay.isActive()) {
+    if (delayedSend && mSendDelay.isActive()) {
         mMessages.append(moved);
     } else {
         //send directly
@@ -29,6 +29,13 @@ void ProxyProducer::send(KafkaMessage message) {
 
 
 void ProxyProducer::onTimeout() {
-    mProxy.produce(mMessages);
+    if (!mMessages.empty()) {
+        mProxy.produce(mMessages);
+        mMessages.clear();
+    }
+}
+
+void ProxyProducer::stop() {
+    mSendDelay.stop();
     mMessages.clear();
 }

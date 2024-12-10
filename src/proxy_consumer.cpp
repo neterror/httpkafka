@@ -22,7 +22,7 @@ ProxyConsumer::ProxyConsumer(const QString &groupName,
     NewNode(generalErrorHandler, work, &ProxyConsumer::onGeneralErrorHandler);
 
     work->addTransition(&mProxy, &KafkaRestApi::error, generalErrorHandler); //on any error, start again from the create instance
-    work->addTransition(this, &ProxyConsumer::finish, cleanup);
+    work->addTransition(this, &ProxyConsumer::requestFinish, cleanup);
 
     //1. try to create the instance
     createInstance->addTransition(&mProxy, &KafkaRestApi::instanceCreated, subscribe);
@@ -58,7 +58,8 @@ void ProxyConsumer::start() {
 // this method may be called from the global context of the signal handler
 // make sure it is serialized with the event loop
 void ProxyConsumer::stop() {
-    QTimer::singleShot(0, [this]{emit finish();});
+    qDebug() << "requestFinish on the proxy consumer";
+    QTimer::singleShot(0, [this]{emit requestFinish();});
 }
 
 
@@ -79,7 +80,6 @@ void ProxyConsumer::onSubscribe() {
 }
 
 void ProxyConsumer::onConsumeMessages() {
-    qDebug() << "start message consumption";
     mProxy.consume();
 }
 
@@ -94,6 +94,6 @@ void ProxyConsumer::onCleanup() {
 }
 
 void ProxyConsumer::onEpilogue() {
-    qDebug() << "onEpilogue reached, intance deleted";
-    QCoreApplication::quit();
+    qDebug() << "onEpilogue";
+    emit finished();
 }

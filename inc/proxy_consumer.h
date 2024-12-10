@@ -26,7 +26,8 @@ private slots:
 signals:
     void message(KafkaMessage message);
     void error(QString message);
-    void finish();
+    void requestFinish();
+    void finished();
     void tryAgain();
 };
 

@@ -7,14 +7,13 @@
 #include <qjsondocument.h>
 #include <qjsonobject.h>
 #include <qnetworkrequest.h>
-#include <qprotobufserializer.h>
 #include <qstringview.h>
 
 KafkaRestApi::KafkaRestApi(const QString& group) : mGroup{group} {
     QSettings settings;
-    mServer = settings.value("server").toString();
-    qDebug() << "mServer = " << mServer;
-    mReadTimeout = settings.value("readTimeout").toInt();
+    mServer = settings.value("KafkaRestApi/server").toString();
+    mReadTimeout = settings.value("KafkaRestApi/readTimeout").toInt();
+    qDebug() << "mServer = " << mServer << ", readTimeout: " << mReadTimeout;
     mManager.setAutoDeleteReplies(false);
 }
 
@@ -134,7 +133,6 @@ void KafkaRestApi::consume() {
             emit message(result);
         }
         emit readingComplete();
-        qDebug() << "reading complete";
     };
     connect(reply, &QNetworkReply::finished, processResponse);
 }

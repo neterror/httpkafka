@@ -21,6 +21,9 @@ public:
     explicit ProxyProducer(int messageDelay);
 
     //we append the timestamp at the time when we accepted the message for sending
-    void send(KafkaMessage messages);
+    //delayedSend accumulates the messages for mSendDelay time before sending at once
+    void send(KafkaMessage messages, bool delayedSend = true);
+
+    void stop();
 };
 
