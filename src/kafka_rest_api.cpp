@@ -129,8 +129,11 @@ void KafkaRestApi::consume() {
             auto obj = item.toObject();
             auto value = obj["value"].toString().toUtf8();
             auto decoded = QByteArray::fromBase64(value);
-            auto result = KafkaMessage{obj["topic"].toString(), obj["key"].toString(), decoded, 0/*timestamp?*/, obj["offset"].toInt()};
-            emit message(result);
+            auto topic = obj["topic"].toString();
+            auto key = obj["key"].toString();
+            auto offset = obj["offset"].toInt();
+
+            emit message({topic, key, decoded, 0, offset});
         }
         emit readingComplete();
     };
