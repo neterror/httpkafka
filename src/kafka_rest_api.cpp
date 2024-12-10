@@ -174,6 +174,7 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
         {"records", records},
     };
     QJsonDocument doc(parameters);
+    qDebug() << "publish: " << doc;
     auto reply = mManager.post(request, doc.toJson(QJsonDocument::Compact));
     auto processResponse = [this, reply]{
         if (reply->error() != QNetworkReply::NoError) {
