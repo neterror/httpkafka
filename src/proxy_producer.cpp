@@ -20,7 +20,7 @@ void ProxyProducer::send(KafkaMessage message, bool delayedSend) {
     moved.timestamp = UTC.toMSecsSinceEpoch();
 
     if (delayedSend && mSendDelay.isActive()) {
-        mMessages.append(moved);
+        mMessages[moved.topic].append(moved);
     } else {
         //send directly
         mProxy.produce({moved});
@@ -29,10 +29,10 @@ void ProxyProducer::send(KafkaMessage message, bool delayedSend) {
 
 
 void ProxyProducer::onTimeout() {
-    if (!mMessages.empty()) {
-        mProxy.produce(mMessages);
-        mMessages.clear();
+    for (const auto& key: mMessages.keys()) {
+        mProxy.produce(mMessages[key]);
     }
+    mMessages.clear();
 }
 
 void ProxyProducer::stop() {

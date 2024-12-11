@@ -10,7 +10,7 @@
 class ProxyProducer : public QObject {
     Q_OBJECT
     KafkaRestApi mProxy;
-    QList<KafkaMessage> mMessages;
+    QMap<QString, QList<KafkaMessage>> mMessages;
     QTimer mSendDelay;
     QElapsedTimer mTimer;
 private slots:
