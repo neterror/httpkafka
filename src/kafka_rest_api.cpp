@@ -7,6 +7,7 @@
 #include <qhttpheaders.h>
 #include <qjsondocument.h>
 #include <qjsonobject.h>
+#include <qnetworkproxy.h>
 #include <qnetworkrequest.h>
 #include <qstringview.h>
 
@@ -15,7 +16,8 @@ KafkaRestApi::KafkaRestApi(const QString& group) : mGroup{group} {
     mServer = settings.value("KafkaRestApi/server").toString();
     mReadTimeout = settings.value("KafkaRestApi/readTimeout").toInt();
     qDebug() << "mServer = " << mServer << ", readTimeout: " << mReadTimeout;
-    mManager.setAutoDeleteReplies(false);
+    mManager.setAutoDeleteReplies(true);
+    mManager.setProxy(QNetworkProxy::NoProxy);
 
     auto user = settings.value("KafkaRestApi/user").toString();
     auto pass = settings.value("KafkaRestApi/password").toString();
@@ -47,7 +49,6 @@ void KafkaRestApi::createInstance() {
     auto jsonPayload = doc.toJson(QJsonDocument::Compact);
     auto reply = mManager.post(request, jsonPayload);
     auto processResponse = [this, reply]{
-        reply->deleteLater();
         QJsonObject obj;
         if (reply->error() != QNetworkReply::NoError) {
             mLastError = reply->errorString();
@@ -77,8 +78,6 @@ void KafkaRestApi::deleteInstance() {
 
     auto reply = mManager.deleteResource(request);
     auto processResponse = [this, reply]{
-        reply->deleteLater();
-
         QJsonObject obj;
         if (reply->error() != QNetworkReply::NoError) {
             mLastError = reply->errorString();
@@ -107,7 +106,6 @@ void KafkaRestApi::subscribe(const QStringList& topics) {
     auto jsonPayload = doc.toJson(QJsonDocument::Compact);
     auto reply = mManager.post(request, jsonPayload);
     auto processResponse = [this, reply]{
-        reply->deleteLater();
         if (reply->error() == QNetworkReply::NoError) {
             emit subscribed();
         } else {
