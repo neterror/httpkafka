@@ -1,6 +1,7 @@
 #pragma once
 #include <QTimer>
 #include <QElapsedTimer>
+#include <QQueue>
 #include <QObject>
 #include <QtStateMachine/qstatemachine.h>
 
@@ -10,13 +11,12 @@
 class ProxyProducer : public QObject {
     Q_OBJECT
     KafkaRestApi mProxy;
-    QMap<QString, QList<KafkaMessage>> mMessages;
-    QTimer mSendDelay;
-    QElapsedTimer mTimer;
+    QStateMachine mSM;
+                        
+    QQueue<KafkaMessage> mQueue;
 private slots:
-    void onTimeout();
-private slots:
-    void onSend(KafkaMessage messages, bool delayedSend = true);
+    void onSend();
+    void onWaitForData();
 public:
     //if messageDelay == 0, send the messages immediately. Otherwise, accumulate the messages for the specified interval before sending
     explicit ProxyProducer(int messageDelay);
@@ -25,9 +25,9 @@ public:
     //delayedSend accumulates the messages for mSendDelay time before sending at once
     
     void stop();
-    void send(KafkaMessage messages, bool delayedSend = true);
-
+    void send(KafkaMessage messages);
 signals:
-    void enqueue(KafkaMessage messages, bool delayedSend);
+    void newData();
+    void error();
 };
 

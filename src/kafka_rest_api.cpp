@@ -178,12 +178,11 @@ void KafkaRestApi::produce(const QList<KafkaMessage>& messages) {
     auto processResponse = [this, reply]{
         if (reply->error() != QNetworkReply::NoError) {
             mLastError = reply->errorString();
-            emit error();
             qDebug() << "message production error: " << mLastError;
-            return;
+            emit error();
+        } else {
+            emit messageDelivered();//todo - take the offset from the doc
         }
-
-        auto doc = QJsonDocument::fromJson(reply->readAll());
     };
     connect(reply, &QNetworkReply::finished, processResponse);
 }

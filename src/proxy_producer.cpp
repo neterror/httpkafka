@@ -4,46 +4,47 @@
 
 //the group name doesn't matter for the producer - it is for the consumers only
 ProxyProducer::ProxyProducer(int delay) : mProxy("producer") {
-    if (delay) {
-        mSendDelay.setSingleShot(false);
-        mSendDelay.setInterval(delay);
-        connect(&mSendDelay, &QTimer::timeout, this, &ProxyProducer::onTimeout);
-        mSendDelay.start();
+    auto waitForData = new QState(&mSM);
+    auto send = new QState(&mSM);
+
+    waitForData->addTransition(this, &ProxyProducer::newData, send);
+    send->addTransition(&mProxy, &KafkaRestApi::messageDelivered, waitForData);
+    send->addTransition(&mProxy, &KafkaRestApi::error, waitForData);
+
+    connect(waitForData, &QState::entered, this, &ProxyProducer::onWaitForData);
+    connect(send, &QState::entered, this, &ProxyProducer::onSend);
+
+    mSM.setInitialState(waitForData);
+    mSM.start();
+}
+
+void ProxyProducer::onWaitForData() {
+    if (!mQueue.isEmpty()) {
+        emit newData();
     }
-
-    connect(this, &ProxyProducer::enqueue, this, &ProxyProducer::onSend, Qt::QueuedConnection);
-
-    mTimer.start(); //measures the time 
 }
 
 
-void ProxyProducer::onSend(KafkaMessage message, bool delayedSend) {
-    auto moved = std::move(message);
+void ProxyProducer::onSend() {
+    if (mQueue.isEmpty()) {
+        qWarning() << "Empty queue for proxy send!";
+        emit error();
+        return;
+    }
+    auto data = mQueue.dequeue();
+    qDebug() << "HTTP proxy is executing send";
+    mProxy.produce({data});
+}
+
+void ProxyProducer::send(KafkaMessage data) {
+    auto message = std::move(data);
     QDateTime UTC(QDateTime::currentDateTimeUtc());
-    moved.timestamp = UTC.toMSecsSinceEpoch();
+    message.timestamp = UTC.toMSecsSinceEpoch();
+    mQueue.enqueue(message);
 
-    if (delayedSend && mSendDelay.isActive()) {
-        qDebug() << "delayed send";
-        mMessages[moved.topic].append(moved);
-    } else {
-        //send directly
-        qDebug() << "immediately send";
-        mProxy.produce({moved});
-    }
-}
-
-void ProxyProducer::send(KafkaMessage messages, bool delayedSend) {
-    emit enqueue(messages, delayedSend);
-}
-
-void ProxyProducer::onTimeout() {
-    for (const auto& key: mMessages.keys()) {
-        mProxy.produce(mMessages[key]);
-    }
-    mMessages.clear();
+    emit newData();
 }
 
 void ProxyProducer::stop() {
-    mSendDelay.stop();
-    mMessages.clear();
+    mSM.stop();
 }

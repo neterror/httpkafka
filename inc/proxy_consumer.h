@@ -30,5 +30,7 @@ signals:
     void requestFinish();
     void finished();
     void tryAgain();
+
+    void messageDelivered(int offset);
 };
 

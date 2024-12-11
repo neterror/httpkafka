@@ -56,4 +56,5 @@ signals:
     void message(KafkaMessage message);
     void readingComplete();
     void error();
+    void messageDelivered();
 };
